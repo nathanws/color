@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Color - Simple Color Palette</title>
+
+		<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+
+		<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
+		<!-- Optional theme -->
+		<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+
+		<!-- Latest compiled and minified JavaScript -->
+		<script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+		<style type="text/less">
+			@background-color: #CECFC7;
+		
+			body {
+				background-color: @background-color;
+			}
+
+			nav {
+				&.navbar {
+					border-radius: 0px;
+				}
+			}
+
+			#settingsBtn {
+				font-size: 18px;
+				margin-right: 15px;
+
+				&:hover {
+					color: #2382E0;
+				}
+			}
+
+			.color-section {
+				display: inline-block;
+				border: 1px solid darken(@background-color, 20%);
+				margin: 0 5px 5px 0px;
+				padding: 5px;
+
+				.swatch {
+					height: 100px;
+					width: 100px;
+
+					background-color: #686A5B;
+					margin-bottom: 5px;
+				}
+
+				.swatch-info {
+					.hex {
+						margin-bottom: 4px;
+					}
+					.name {}
+
+					.operations {
+						.glyphicon {
+							margin-left: 3px;
+						}
+					}
+				}
+			}
+
+			.pointer {
+				cursor: pointer;
+			}
+		</style>
+
+		<!-- LESS, because why not -->
+		<script>
+			less = {
+				env: "development",
+				async: false,
+				fileAsync: false,
+				poll: 1000,
+				functions: {},
+				dumpLineNumbers: "comments",
+				relativeUrls: false
+			};
+		</script>
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/less.js/1.6.2/less.min.js"></script>
+
+		<script>
+			$(document).ready(function () {
+				refreshTooltips();
+
+				$('#addBtn').click(function() {
+					var c = getFormVals();
+					createSwatch(c).appendTo('#main-stuff');
+					$('#addModal').modal('hide');
+					clearForm();
+					refreshTooltips();
+				});
+
+				$('#closeBtn').click(function() {
+					clearForm();
+				});
+			});
+
+			function clearForm() {
+				$('#inputName').val('');
+				$('#inputHex').val('');
+			}
+
+			function createSwatch(opts) {
+				var outer = $("<div>").addClass('color-section');
+				var swatch = $('<div>').addClass('swatch').css('background-color', opts.hex).appendTo(outer);
+				var swatchInfo = $('<div>').addClass('swatch-info').appendTo(outer);
+				var name = $('<div>').addClass('name text-center').html(opts.name).appendTo(swatchInfo);
+				var hex = $('<div>').addClass('name text-center').html(opts.hex).appendTo(swatchInfo);
+				var ops = $('<div>').addClass('operations text-right').appendTo(swatchInfo);
+				var darken = $('<span>').addClass('glyphicon glyphicon-arrow-down pointer')
+								.attr('data-toggle', 'tooltip')
+								.attr('data-placement', 'top')
+								.attr('title', 'darken')
+								.appendTo(ops);
+
+				var lighten = $('<span>').addClass('glyphicon glyphicon-arrow-up pointer')
+								.attr('data-toggle', 'tooltip')
+								.attr('data-placement', 'top')
+								.attr('title', 'lighten')
+								.appendTo(ops);
+
+				var duplicate = $('<span>').addClass('glyphicon glyphicon-new-window pointer')
+								.attr('data-toggle', 'tooltip')
+								.attr('data-placement', 'top')
+								.attr('title', 'duplicate')
+								.appendTo(ops);
+
+				var remove = $('<span>').addClass('glyphicon glyphicon-remove pointer')
+								.attr('data-toggle', 'tooltip')
+								.attr('data-placement', 'top')
+								.attr('title', 'remove')
+								.appendTo(ops);
+
+				return outer;
+			}
+
+			function getFormVals() {
+				return {
+					name: $('#inputName').val(),
+					hex: $('#inputHex').val()
+				};
+			}
+
+			function refreshTooltips() {
+				$('[data-toggle="tooltip"]').tooltip();
+			}
+		</script>
+	</head>
+
+	<body>
+		<nav class="navbar navbar-inverse" role="navigation">
+
+			<div class="container-fluid">
+				<!-- Brand and toggle get grouped for better mobile display -->
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#color-navbar-collapse">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="">Color</a>
+				</div>
+
+				<div class="collapse navbar-collapse" id="color-navbar-collapse">
+					<button id="addNewColorBtn" type="button" class="btn btn-primary btn-sm navbar-btn navbar-right" data-toggle="modal" data-target="#addModal">Add New Color</button>
+					<span id="settingsBtn" class="glyphicon glyphicon-cog navbar-text navbar-right pointer"></span>
+					<a href="" class="navbar-link navbar-text navbar-right">Export Colors</a>
+					<a href="" class="navbar-link navbar-text navbar-right">Import Colors</a>
+				</div>
+			</div>
+		</nav>
+
+		<div id="main-stuff" class="container">
+
+<!-- 			<div class="color-section">
+				<div class="swatch"></div>
+				<div class="swatch-info">
+					<div class="name text-center">Test Name</div>
+					<div class="hex text-center">#123abc</div>
+					<div class="operations text-right">
+						<span class="glyphicon glyphicon-arrow-down pointer" data-toggle="tooltip" data-placement="top" title="darken"></span>
+						<span class="glyphicon glyphicon-arrow-up pointer" data-toggle="tooltip" data-placement="top" title="lighten"></span>
+						<span class="glyphicon glyphicon-remove pointer" data-toggle="tooltip" data-placement="top" title="remove"></span>
+					</div>
+				</div>
+			</div>
+ -->		</div>
+
+
+		<div id="addModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h4 class="modal-title">Add Color</h4>
+					</div>
+
+					<div class="modal-body">
+						<form id="colorForm" class="form-horizontal" role="form">
+
+							<div class="form-group">
+								<label for="inputName" class="col-lg-2 control-label">Name</label>
+								<div class="col-lg-10">
+									<input type="text" class="form-control" id="inputName" placeholder="Name">
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label for="inputHex" class="col-lg-2 control-label">Hex</label>
+								<div class="col-lg-10">
+									<input type="text" class="form-control" id="inputHex" placeholder="Hex">
+								</div>
+							</div>
+						</form>
+					</div>
+
+					<div class="modal-footer">
+						<button id="closeBtn" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						<button id="addBtn" type="button" class="btn btn-primary">Add</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
