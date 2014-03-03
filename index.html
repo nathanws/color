@@ -79,10 +79,13 @@
 		<script src="http://cdnjs.cloudflare.com/ajax/libs/less.js/1.6.2/less.min.js"></script>
 
 		<script>
+			// Start LESS watch mode
+			less.watch();
+
 			$(document).ready(function () {
 				refreshTooltips();
 
-				$('#addBtn').click(function() {
+				$('#addBtn').click(function () {
 					var c = getFormVals();
 					createSwatch(c).appendTo('#main-stuff');
 					$('#addModal').modal('hide');
@@ -90,8 +93,16 @@
 					refreshTooltips();
 				});
 
-				$('#closeBtn').click(function() {
+				$('#closeBtn').click(function () {
 					clearForm();
+				});
+
+				$('#inputBGColor').keyup(function () {
+					var c = $(this).val();
+					// if (c[0] != '#') {
+					// 	c = '#' + c;
+					// }
+					$('body').css('background-color', c);
 				});
 			});
 
@@ -178,8 +189,8 @@
 							<a href="">Import Colors</a>
 						</li>
 						<li>
-							<a href="" class="settings-btn glyphicon glyphicon-cog hidden-xs"></a>
-							<a href="" class="settings-btn visible-xs">Settings</a>
+							<a href="" class="settings-btn glyphicon glyphicon-cog hidden-xs" data-toggle="modal" data-target="#settingsModal"></a>
+							<a href="" class="settings-btn visible-xs" data-toggle="modal" data-target="#settingsModal">Settings</a>
 						</li>
 						<li>
 							<a href="" id="addNewColorBtn" data-toggle="modal" data-target="#addModal">Add New Color</a>
@@ -191,6 +202,7 @@
 
 		<div id="main-stuff" class="container"></div>
 
+		<!-- ADD SWATCH MODAL -->
 		<div id="addModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
 			<div class="modal-dialog">
 				<div class="modal-content">
@@ -213,6 +225,34 @@
 								<label for="inputHex" class="col-lg-2 control-label">Hex</label>
 								<div class="col-lg-10">
 									<input type="text" class="form-control" id="inputHex" placeholder="Hex">
+								</div>
+							</div>
+						</form>
+					</div>
+
+					<div class="modal-footer">
+						<button id="closeBtn" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						<button id="addBtn" type="button" class="btn btn-primary">Add</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- SETTINGS MODAL -->
+		<div id="settingsModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h4 class="modal-title">Settings</h4>
+					</div>
+
+					<div class="modal-body">
+						<form id="colorForm" class="form-horizontal" role="form">
+							<div class="form-group">
+								<label for="inputBGColor" class="col-lg-2 control-label">Background Color</label>
+								<div class="col-lg-10">
+									<input type="text" class="form-control" id="inputBGColor" placeholder="#CECFC7" value="">
 								</div>
 							</div>
 						</form>
