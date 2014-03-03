@@ -31,15 +31,6 @@
 				}
 			}
 
-			#settingsBtn {
-				font-size: 18px;
-				margin-right: 15px;
-
-				&:hover {
-					color: #2382E0;
-				}
-			}
-
 			.color-section {
 				display: inline-block;
 				border: 1px solid darken(@background-color, 20%);
@@ -138,6 +129,9 @@
 								.attr('data-toggle', 'tooltip')
 								.attr('data-placement', 'top')
 								.attr('title', 'remove')
+								.click(function() {
+									removeSwatch(this);
+								})
 								.appendTo(ops);
 
 				return outer;
@@ -152,6 +146,10 @@
 
 			function refreshTooltips() {
 				$('[data-toggle="tooltip"]').tooltip();
+			}
+
+			function removeSwatch(swat) {
+				$(swat).parents('.color-section').remove();
 			}
 		</script>
 	</head>
@@ -172,30 +170,26 @@
 				</div>
 
 				<div class="collapse navbar-collapse" id="color-navbar-collapse">
-					<button id="addNewColorBtn" type="button" class="btn btn-primary btn-sm navbar-btn navbar-right" data-toggle="modal" data-target="#addModal">Add New Color</button>
-					<span id="settingsBtn" class="glyphicon glyphicon-cog navbar-text navbar-right pointer"></span>
-					<a href="" class="navbar-link navbar-text navbar-right">Export Colors</a>
-					<a href="" class="navbar-link navbar-text navbar-right">Import Colors</a>
+					<ul class="nav navbar-nav navbar-right">
+						<li>
+							<a href="">Export Colors</a>
+						</li>
+						<li>
+							<a href="">Import Colors</a>
+						</li>
+						<li>
+							<a href="" class="settings-btn glyphicon glyphicon-cog hidden-xs"></a>
+							<a href="" class="settings-btn visible-xs">Settings</a>
+						</li>
+						<li>
+							<a href="" id="addNewColorBtn" data-toggle="modal" data-target="#addModal">Add New Color</a>
+						</li>
+					</ul>
 				</div>
 			</div>
 		</nav>
 
-		<div id="main-stuff" class="container">
-
-<!-- 			<div class="color-section">
-				<div class="swatch"></div>
-				<div class="swatch-info">
-					<div class="name text-center">Test Name</div>
-					<div class="hex text-center">#123abc</div>
-					<div class="operations text-right">
-						<span class="glyphicon glyphicon-arrow-down pointer" data-toggle="tooltip" data-placement="top" title="darken"></span>
-						<span class="glyphicon glyphicon-arrow-up pointer" data-toggle="tooltip" data-placement="top" title="lighten"></span>
-						<span class="glyphicon glyphicon-remove pointer" data-toggle="tooltip" data-placement="top" title="remove"></span>
-					</div>
-				</div>
-			</div>
- -->		</div>
-
+		<div id="main-stuff" class="container"></div>
 
 		<div id="addModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
 			<div class="modal-dialog">
