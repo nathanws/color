@@ -7,7 +7,7 @@ Simple Color Palette for stuff.
 TODO
 =====
 
-* functions: darken, lighten, duplicate, edit
+* functions: edit
 * rearrange swatches?
 * import/export
 * focus name on modal open

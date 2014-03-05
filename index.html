@@ -46,15 +46,18 @@
 				}
 
 				.swatch-info {
-					.hex {
-						margin-bottom: 4px;
-					}
+					.hex {}
+
 					.name {}
 
 					.operations {
 						.glyphicon {
 							margin-left: 3px;
 						}
+					}
+
+					.rgb {
+						margin-bottom: 4px;
 					}
 				}
 			}
@@ -104,6 +107,8 @@
 					// }
 					$('body').css('background-color', c);
 				});
+
+				createSwatch({hex: '#4d8a0f', name: 'white'}).appendTo('#main-stuff');
 			});
 
 			function clearForm() {
@@ -113,27 +118,47 @@
 
 			function createSwatch(opts) {
 				var outer = $("<div>").addClass('color-section');
+
+				if (opts.hex[0] != '#') {
+					opts.hex = '#' + opts.hex;
+				}
+				
 				var swatch = $('<div>').addClass('swatch').css('background-color', opts.hex).appendTo(outer);
 				var swatchInfo = $('<div>').addClass('swatch-info').appendTo(outer);
 				var name = $('<div>').addClass('name text-center').html(opts.name).appendTo(swatchInfo);
-				var hex = $('<div>').addClass('name text-center').html(opts.hex).appendTo(swatchInfo);
+				var hex = $('<div>').addClass('hex text-center').html(opts.hex).appendTo(swatchInfo);
+
+				// if (opts.hex[0] == '#') {
+				// 	opts.hex = opts.hex.substring(1);
+				// }
+				// var rgb = $('<div>').addClass('rgb text-center').html((new less.tree.Color(opts.hex).rgb.toString())).appendTo(swatchInfo);
+
 				var ops = $('<div>').addClass('operations text-right').appendTo(swatchInfo);
 				var darken = $('<span>').addClass('glyphicon glyphicon-arrow-down pointer')
 								.attr('data-toggle', 'tooltip')
 								.attr('data-placement', 'top')
 								.attr('title', 'darken')
+								.click(function () {
+									darkenSwatch($(this).parents('.color-section'));
+								})
 								.appendTo(ops);
 
 				var lighten = $('<span>').addClass('glyphicon glyphicon-arrow-up pointer')
 								.attr('data-toggle', 'tooltip')
 								.attr('data-placement', 'top')
 								.attr('title', 'lighten')
+								.click(function () {
+									lightenSwatch($(this).parents('.color-section'));	
+								})
 								.appendTo(ops);
 
 				var duplicate = $('<span>').addClass('glyphicon glyphicon-new-window pointer')
 								.attr('data-toggle', 'tooltip')
 								.attr('data-placement', 'top')
 								.attr('title', 'duplicate')
+								.click(function () {
+									createSwatch(getSwatch($(this).parents('.color-section'))).appendTo('#main-stuff');
+								})
 								.appendTo(ops);
 
 				var remove = $('<span>').addClass('glyphicon glyphicon-remove pointer')
@@ -148,11 +173,47 @@
 				return outer;
 			}
 
+			function darkenSwatch(elm) {
+				var swatch = getSwatch(elm);
+				var c = new less.tree.Color(swatch.hex);
+				var a = new less.tree.Value('10');	// lighten by 10%
+				var r = less.tree.functions.darken(c, a);
+
+				$(elm).find('.swatch').css('background-color', r.toRGB());
+				$(elm).find('.swatch-info .hex').text(r.toRGB());
+				// $(elm).find('.swatch-info .rgb').text(r.rgb.toString());
+			}
+
 			function getFormVals() {
 				return {
 					name: $('#inputName').val(),
 					hex: $('#inputHex').val()
 				};
+			}
+
+			function getSwatch(elm) {
+				var parent = $(elm);
+
+				var hex = parent.find('.swatch-info .hex').text();
+				if (hex[0] == '#') {
+					hex = hex.substring(1);
+				}
+
+				return {
+					'hex': hex,
+					'name': parent.find('.swatch-info .name').text()
+				}
+			}
+
+			function lightenSwatch(elm) {
+				var swatch = getSwatch(elm);
+				var c = new less.tree.Color(swatch.hex);
+				var a = new less.tree.Value('10');	// lighten by 10%
+				var r = less.tree.functions.lighten(c, a);
+
+				$(elm).find('.swatch').css('background-color', r.toRGB());
+				$(elm).find('.swatch-info .hex').text(r.toRGB());
+				// $(elm).find('.swatch-info .rgb').text(r.rgb.toString());
 			}
 
 			function refreshTooltips() {
