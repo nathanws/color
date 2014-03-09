@@ -82,11 +82,25 @@
 		<script src="http://cdnjs.cloudflare.com/ajax/libs/less.js/1.6.2/less.min.js"></script>
 
 		<script>
-			// Start LESS watch mode
-			// less.watch();
+			if (typeof(Storage) !== "undefined") {
+				var saveSwatches = function () {
+					localStorage.setItem('swatches', JSON.stringify(exportSwatches()));
+				};
+
+				var loadSwatches = function () {
+					return JSON.parse(localStorage.swatches);
+				};
+			} else {
+				var saveSwatches = function () {};
+				var loadSwatches = function () {};
+			}
 
 			$(document).ready(function () {
 				refreshTooltips();
+
+				if (localStorage.swatches) {
+					importSwatches(loadSwatches());
+				}
 
 				$('#addBtn').click(function () {
 					var c = getFormVals();
@@ -94,6 +108,7 @@
 					$('#addModal').modal('hide');
 					clearForm();
 					refreshTooltips();
+					saveSwatches();
 				});
 
 				$('#closeAddBtn').click(function () {
@@ -128,9 +143,9 @@
 					$('#exportModal').modal('show');
 				});
 
-				createSwatch({hex: '#0080FF', name: 'bright-blue'}).appendTo('#main-stuff');
-				createSwatch({hex: '#33CC66', name: 'vma-green'}).appendTo('#main-stuff');
-				createSwatch({hex: '#EB7C01', name: 'medium-orange'}).appendTo('#main-stuff');
+				// createSwatch({hex: '#0080FF', name: 'bright-blue'}).appendTo('#main-stuff');
+				// createSwatch({hex: '#33CC66', name: 'vma-green'}).appendTo('#main-stuff');
+				// createSwatch({hex: '#EB7C01', name: 'medium-orange'}).appendTo('#main-stuff');
 			});
 
 			function clearForm() {
@@ -265,6 +280,7 @@
 
 			function removeSwatch(swat) {
 				$(swat).parents('.color-section').remove();
+				saveSwatches();
 			}
 
 			function rgb2hex(rgb) {
