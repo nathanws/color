@@ -111,6 +111,10 @@
 					saveSwatches();
 				});
 
+				$('#addModal').on('shown.bs.modal', function (e) {
+					$('#inputName').focus();
+				});
+
 				$('#closeAddBtn').click(function () {
 					clearForm();
 				});
@@ -129,6 +133,12 @@
 				$('#inputBGColor').keyup(function () {
 					var c = $(this).val();
 					$('body').css('background-color', c);
+				});
+
+				$('#inputHex').keydown(function (e) {
+					if (e.keyCode == 13) {
+						$('#addBtn').click();	
+					}
 				});
 
 				$('.exportSwatches').click(function (e) {
