@@ -133,12 +133,17 @@
 				$('#inputBGColor').keyup(function () {
 					var c = $(this).val();
 					$('body').css('background-color', c);
+					saveSwatches();
 				});
 
 				$('#inputHex').keydown(function (e) {
 					if (e.keyCode == 13) {
 						$('#addBtn').click();	
 					}
+				});
+
+				$('#settingsModal').on('show.bs.modal', function (e) {
+					$('#inputBGColor').attr('placeholder', rgb2hex($('body').css('background-color')));
 				});
 
 				$('.exportSwatches').click(function (e) {
@@ -152,10 +157,6 @@
 					$('#swatchTextarea').val('');
 					$('#exportModal').modal('show');
 				});
-
-				// createSwatch({hex: '#0080FF', name: 'bright-blue'}).appendTo('#main-stuff');
-				// createSwatch({hex: '#33CC66', name: 'vma-green'}).appendTo('#main-stuff');
-				// createSwatch({hex: '#EB7C01', name: 'medium-orange'}).appendTo('#main-stuff');
 			});
 
 			function clearForm() {
@@ -417,8 +418,8 @@
 					<div class="modal-body">
 						<form id="colorForm" class="form-horizontal" role="form">
 							<div class="form-group">
-								<label for="inputBGColor" class="col-lg-2 control-label">Background Color</label>
-								<div class="col-lg-10">
+								<label for="inputBGColor" class="col-lg-4 control-label">Background Color</label>
+								<div class="col-lg-8">
 									<input type="text" class="form-control" id="inputBGColor" placeholder="#CECFC7" value="">
 								</div>
 							</div>
