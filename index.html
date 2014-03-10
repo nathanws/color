@@ -84,11 +84,13 @@
 		<script>
 			if (typeof(Storage) !== "undefined") {
 				var saveSwatches = function () {
-					localStorage.setItem('swatches', JSON.stringify(exportSwatches()));
+					var swats = exportSwatches();
+					localStorage.setItem('swatches', JSON.stringify(swats.swatches));
+					localStorage.setItem('settings', JSON.stringify(swats.settings));
 				};
 
 				var loadSwatches = function () {
-					return JSON.parse(localStorage.swatches);
+					return {settings: JSON.parse(localStorage.settings || {}), swatches: JSON.parse(localStorage.swatches || {})};
 				};
 			} else {
 				var saveSwatches = function () {};
@@ -144,6 +146,11 @@
 
 				$('#settingsModal').on('show.bs.modal', function (e) {
 					$('#inputBGColor').attr('placeholder', rgb2hex($('body').css('background-color')));
+				});
+
+				$('#settingsResetBtn').click(function () {
+					localStorage.settings = "{}";
+					location.reload();
 				});
 
 				$('.exportSwatches').click(function (e) {
@@ -424,12 +431,17 @@
 									<input type="text" class="form-control" id="inputBGColor" placeholder="#CECFC7" value="">
 								</div>
 							</div>
+
+							<div class="form-group">
+								<div class="col-lg-8 col-lg-offset-4">
+									<button id="settingsResetBtn" type="button" class="btn btn-danger btn-block">Reset all Settings to default</button>
+								</div>
+							</div>
 						</form>
 					</div>
 
 					<div class="modal-footer">
 						<button id="closeSettingsBtn" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-						<button id="addBtn" type="button" class="btn btn-primary">Add</button>
 					</div>
 				</div>
 			</div>
