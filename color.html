@@ -135,10 +135,12 @@
 					var fg = $('#addPaletteModal .modal-body .form-group');
 
 					if (p != null) {
-						addPalette($('#inputPaletteName').val());
+						addPalette(p);
+						savePalettes();
+						loadPalette(p)
+						$('#paletteSelect').val(p);
 						fg.removeClass('has-error').find('help-block').addClass('hidden');
 						$('#addPaletteModal').modal('hide');
-						savePalettes();
 					} else {
 						fg.addClass('has-error').find('.help-block').removeClass('hidden');
 					}
@@ -148,6 +150,14 @@
 					$('#inputPaletteName').focus();
 				}).on('hide.bs.modal', function (e) {
 					clearForms();
+				});
+
+				$('#deletePaletteBtn').click(function () {
+					var p = $('#paletteSelect').val();
+					$('[data-palette="' + p + '"]').remove();
+					$('#paletteSelect option:selected').remove();
+					savePalettes();
+					loadPalette($('#paletteSelect').val());
 				});
 
 				$('#importBtn').click(function () {
@@ -480,7 +490,10 @@
 						<select id="paletteSelect" class="form-control"></select>
 						<span class="input-group-btn">
 							<button class="btn btn-default" type="button" data-toggle="modal" data-target="#addPaletteModal">
-								<span class="glyphicon glyphicon-plus"></span>
+								<span class="glyphicon glyphicon-plus" data-toggle="tooltip" data-placemen="bottom" title="Add Palette"></span>
+							</button>
+							<button id="deletePaletteBtn" class="btn btn-default" type="button" data-toggle="tooltip" data-placement="bottom" title="Delete Palette">
+								<span class="glyphicon glyphicon-remove" ></span>
 							</button>
 						</span>
 					</div>
