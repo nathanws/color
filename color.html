@@ -33,6 +33,10 @@
 				}
 			}
 
+			#palettes {
+				margin-bottom: 25px;
+			}
+
 			.color-section {
 				display: inline-block;
 				border: 1px solid darken(@background-color, 20%);
@@ -88,55 +92,76 @@
 			var swatchWidth = 100;
 
 			if (typeof(Storage) !== "undefined") {
-				var saveSwatches = function () {
-					var swats = exportSwatches();
-					localStorage.setItem('swatches', JSON.stringify(swats.swatches));
-					localStorage.setItem('settings', JSON.stringify(swats.settings));
+				var savePalettes = function () {
+					localStorage.setItem('palettes', JSON.stringify(exportPalettes()));
 				};
 
-				var loadSwatches = function () {
-					return {settings: JSON.parse(localStorage.settings || {}), swatches: JSON.parse(localStorage.swatches || {})};
+				var loadPalettes = function () {
+					return JSON.parse(localStorage.palettes || {});
 				};
 			} else {
-				var saveSwatches = function () {};
-				var loadSwatches = function () {};
+				var savePalettes = function () {};
+				var loadPalettes = function () {};
 			}
 
 			$(document).ready(function () {
 				refreshTooltips();
 
-				if (localStorage.swatches) {
-					importSwatches(loadSwatches());
+				if (localStorage.palettes) {
+					importPalettes(loadPalettes());
+					$('#paletteSelect').val(localStorage.currentPalette);
+				} else {
+					var p = addPalette('Default Palette');
+					localStorage.currentPalette = 'Default Palette';
 				}
 
 				$('#addBtn').click(function () {
 					var c = getFormVals();
-					createSwatch(c).appendTo('#main-stuff');
-					$('#addModal').modal('hide');
-					clearForm();
+					// createSwatch(c).appendTo('#main-stuff');
+					createSwatch(c).appendTo('[data-palette="' + localStorage.currentPalette + '"]');
+					$('#addSwatchModal').modal('hide');
 					refreshTooltips();
-					saveSwatches();
+					savePalettes();
 				});
 
-				$('#addModal').on('shown.bs.modal', function (e) {
+				$('#addSwatchModal').on('shown.bs.modal', function (e) {
 					$('#inputName').focus();
+				}).on('hide.bs.modal', function (e) {
+					clearForms();
 				});
 
-				$('#closeAddBtn').click(function () {
-					clearForm();
+				$('#addPaletteBtn').click(function () {
+					var p = $('#inputPaletteName').val() || null;
+					var fg = $('#addPaletteModal .modal-body .form-group');
+
+					if (p != null) {
+						addPalette($('#inputPaletteName').val());
+						fg.removeClass('has-error').find('help-block').addClass('hidden');
+						$('#addPaletteModal').modal('hide');
+						savePalettes();
+					} else {
+						fg.addClass('has-error').find('.help-block').removeClass('hidden');
+					}
+				});
+
+				$('#addPaletteModal').on('show.bs.modal', function (e) {
+					$('#inputPaletteName').focus();
+				}).on('hide.bs.modal', function (e) {
+					clearForms();
 				});
 
 				$('#importBtn').click(function () {
 					if ($('#deleteExistingCB').is(':checked')) {
 						$('#main-stuff').empty();
+						$('#paletteSelect').empty();
 					}
 
-					importSwatches(JSON.parse($('#swatchTextarea').val()));
+					importPalettes(JSON.parse($('#swatchTextarea').val()));
 
 					$('#exportModal').modal('hide');
 					$('#deleteExistingCB').prop('checked', false)	
 
-					saveSwatches();
+					savePalettes();
 				});
 
 				$('#inputBGColor').keyup(function () {
@@ -163,14 +188,16 @@
 					$('.color-section .swatch').css('width', $(this).val());
 				});
 
-				$('#settingsModal').on('hide.bs.modal', function (e) {
-					saveSwatches();
+				$('#paletteSelect').change(function () {
+					loadPalette($(this).val());
 				});
 
 				$('#settingsModal').on('show.bs.modal', function (e) {
 					$('#inputBGColor').attr('placeholder', rgb2hex($('body').css('background-color')));
 					$('#inputSwatchHeight').attr('placeholder', $('.color-section .swatch').height() || swatchHeight);
 					$('#inputSwatchWidth').attr('placeholder', $('.color-section .swatch').width() || swatchWidth);
+				}).on('hide.bs.modal', function (e) {
+					savePalettes();
 				});
 
 				$('#settingsResetBtn').click(function () {
@@ -178,22 +205,49 @@
 					location.reload();
 				});
 
-				$('.exportSwatches').click(function (e) {
+				$('.exportPalettes').click(function (e) {
 					e.preventDefault();
-					$('#swatchTextarea').val(JSON.stringify(exportSwatches(), null, 4));
+					$('#swatchTextarea').val(JSON.stringify(exportPalettes(), null, 4));
 					$('#exportModal').modal('show');
 				});
 
-				$('.importSwatches').click(function (e) {
+				$('.importPalettes').click(function (e) {
 					e.preventDefault();
 					$('#swatchTextarea').val('');
 					$('#exportModal').modal('show');
 				});
 			});
 
-			function clearForm() {
+			function addPalette(name) {
+				var opts = $('#paletteSelect option');
+				var newOpt = $('<option>').html(name);
+
+				if (opts.length == 0) {
+					newOpt.appendTo('#paletteSelect');
+				} else {
+					opts.each(function (i, opt) {
+						if ($(opt).html().toLowerCase() > name.toLowerCase()) {
+							newOpt.insertBefore($(opt));
+							return false;
+						} else if (i == opts.length - 1) {
+							newOpt.insertAfter($(opt));
+						}
+					});	
+				}
+
+				var palette = $('<div>')
+					.addClass('palette')
+					.attr('data-palette', name)
+					.attr('data-palette-bgcolor', rgb2hex($('body').css('background-color')))
+					.appendTo('#main-stuff');
+
+				return palette;
+			}
+
+			function clearForms() {
 				$('#inputName').val('');
 				$('#inputHex').val('');
+				$('#inputPaletteName').val('');
 			}
 
 			function createSwatch(opts) {
@@ -203,7 +257,7 @@
 					opts.hex = '#' + opts.hex;
 				}
 
-				var settings = loadSwatches().settings;
+				var settings = loadPalettes()[localStorage.currentPalette].settings;
 				
 				var swatch = $('<div>').addClass('swatch')
 					.css('background-color', opts.hex)
@@ -215,11 +269,6 @@
 				var name = $('<div>').addClass('name text-center').html(opts.name).appendTo(swatchInfo);
 				var hex = $('<div>').addClass('hex text-center').html(opts.hex).appendTo(swatchInfo);
 
-				// if (opts.hex[0] == '#') {
-				// 	opts.hex = opts.hex.substring(1);
-				// }
-				// var rgb = $('<div>').addClass('rgb text-center').html((new less.tree.Color(opts.hex).rgb.toString())).appendTo(swatchInfo);
-
 				var ops = $('<div>').addClass('operations text-right').appendTo(swatchInfo);
 				var darken = $('<span>').addClass('glyphicon glyphicon-arrow-down pointer')
 								.attr('data-toggle', 'tooltip')
@@ -227,7 +276,7 @@
 								.attr('title', 'darken')
 								.click(function () {
 									darkenSwatch($(this).parents('.color-section'));
-									saveSwatches();
+									savePalettes();
 								})
 								.appendTo(ops);
 
@@ -237,7 +286,7 @@
 								.attr('title', 'lighten')
 								.click(function () {
 									lightenSwatch($(this).parents('.color-section'));	
-									saveSwatches();
+									savePalettes();
 								})
 								.appendTo(ops);
 
@@ -247,7 +296,7 @@
 								.attr('title', 'duplicate')
 								.click(function () {
 									createSwatch(getSwatch($(this).parents('.color-section'))).appendTo('#main-stuff');
-									saveSwatches();
+									savePalettes();
 								})
 								.appendTo(ops);
 
@@ -257,7 +306,7 @@
 								.attr('title', 'remove')
 								.click(function() {
 									removeSwatch(this);
-									saveSwatches();
+									savePalettes();
 								})
 								.appendTo(ops);
 
@@ -267,29 +316,34 @@
 			function darkenSwatch(elm) {
 				var swatch = getSwatch(elm);
 				var c = new less.tree.Color(swatch.hex);
-				var a = new less.tree.Value('10');	// lighten by 10%
+				var a = new less.tree.Value('10');	// darken by 10%
 				var r = less.tree.functions.darken(c, a);
 
 				$(elm).find('.swatch').css('background-color', r.toRGB());
 				$(elm).find('.swatch-info .hex').text(r.toRGB());
-				// $(elm).find('.swatch-info .rgb').text(r.rgb.toString());
 			}
 
-			function exportSwatches() {
-				var swats = {
-					'settings': {
-						'backgroundColor': rgb2hex($('body').css('background-color')),
-						'swatchHeight': $('.color-section .swatch').height(),
-						'swatchWidth': $('.color-section .swatch').width()
-					},
-					'swatches': []
-				};
+			function exportPalettes() {
+				var palettes = {};
 
-				$('#main-stuff .color-section').each(function (index, value) {
-					swats.swatches[index] = getSwatch(this);
+				$('#main-stuff .palette').each(function (index, value) {
+					var p = $(value);
+					var palette = {};
+					palette["name"] = p.attr('data-palette');
+					palette["settings"] = {};
+					palette.settings["backgroundColor"] = p.attr('data-palette-bgcolor');
+					palette.settings["swatchHeight"] = p.find('.swatch').height();
+					palette.settings["swatchWidth"] = p.find('.swatch').width();
+					palette["swatches"] = [];
+
+					$('[data-palette="' + palette.name + '"] .color-section').each(function (index, value) {
+						palette.swatches[index] = getSwatch(this);
+					});
+
+					palettes[palette.name] = palette;
 				});
 
-				return swats;
+				return palettes;
 			}
 
 			function getFormVals() {
@@ -313,15 +367,35 @@
 				}
 			}
 
-			function importSwatches(swats) {
-				$('body').css('background-color', swats.settings.backgroundColor);
+			function importPalettes(palettes) {
+				var keys = Object.keys(palettes);
 
-				for (var i = 0; i < swats.swatches.length; i++) {
-					createSwatch(swats.swatches[i]).appendTo('#main-stuff');
+				if (keys.length > 0) {
+					var currentPalette = localStorage.currentPalette;
+
+					for (var i = 0; i < keys.length; i++) {
+						var palette = palettes[keys[i]];
+
+						var outer = addPalette(palette.name);
+						outer.attr('data-palette-bgcolor', palette.settings.backgroundColor)
+
+						if (currentPalette && palette.name != currentPalette) {
+							outer.addClass('hidden');
+						}
+
+						for (var j = 0; j < palette.swatches.length; j++) {
+							createSwatch(palette.swatches[j]).appendTo(outer);
+						}
+
+						outer.find('.color-section .swatch')
+							.css('height', palette.settings.swatchHeight)
+							.css('width', palette.settings.swatchWidth);
+					}
+
+					if (!currentPalette) {
+						loadPalette($('#main-stuff .palette').first().attr('data-palette'));
+					}
 				}
-
-				$('.color-section .swatch').css('height', swats.settings.swatchHeight || swatchHeight);
-				$('.color-section .swatch').css('width', swats.settings.swatchWidth || swatchWidth);
 			}
 
 			function lightenSwatch(elm) {
@@ -332,7 +406,16 @@
 
 				$(elm).find('.swatch').css('background-color', r.toRGB());
 				$(elm).find('.swatch-info .hex').text(r.toRGB());
-				// $(elm).find('.swatch-info .rgb').text(r.rgb.toString());
+			}
+
+			function loadPalette(paletteName) {
+				$('#main-stuff .palette').addClass('hidden');
+				$('[data-palette="' + paletteName + '"]').removeClass('hidden');	
+
+				localStorage.setItem('currentPalette', paletteName);
+				var palettes = loadPalettes();
+
+				$('body').css('background-color', palettes[paletteName].settings.backgroundColor);
 			}
 
 			function refreshTooltips() {
@@ -373,27 +456,42 @@
 				<div class="collapse navbar-collapse" id="color-navbar-collapse">
 					<ul class="nav navbar-nav navbar-right">
 						<li>
-							<a href="" class="exportSwatches">Export Swatches</a>
+							<a href="" class="exportPalettes">Export Palettes</a>
 						</li>
 						<li>
-							<a href="" class="importSwatches">Import Swatches</a>
+							<a href="" class="importPalettes">Import Palettes</a>
 						</li>
 						<li>
 							<a href="" class="settings-btn glyphicon glyphicon-cog hidden-xs" data-toggle="modal" data-target="#settingsModal"></a>
 							<a href="" class="settings-btn visible-xs" data-toggle="modal" data-target="#settingsModal">Settings</a>
 						</li>
 						<li>
-							<a href="" id="addNewColorBtn" data-toggle="modal" data-target="#addModal">Add New Color</a>
+							<a href="" id="addNewColorBtn" data-toggle="modal" data-target="#addSwatchModal">Add New Color</a>
 						</li>
 					</ul>
 				</div>
 			</div>
 		</nav>
 
+		<div id="palettes" class="container">
+			<div class="row">
+				<div class="col-lg-5">
+					<div class="input-group">
+						<select id="paletteSelect" class="form-control"></select>
+						<span class="input-group-btn">
+							<button class="btn btn-default" type="button" data-toggle="modal" data-target="#addPaletteModal">
+								<span class="glyphicon glyphicon-plus"></span>
+							</button>
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<div id="main-stuff" class="container"></div>
 
 		<!-- ADD SWATCH MODAL -->
-		<div id="addModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+		<div id="addSwatchModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
 			<div class="modal-dialog">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -425,6 +523,34 @@
 					<div class="modal-footer">
 						<button id="closeAddBtn" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 						<button id="addBtn" type="button" class="btn btn-primary">Add</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- ADD PALETTE MODAL -->
+		<div id="addPaletteModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h4 class="modal-title">Add Palette</h4>
+					</div>
+
+					<div class="modal-body">
+						<form class="form-horizontal" role="form">
+							<div class="form-group">
+								<div class="col-lg-12">
+									<input type="text" class="form-control" id="inputPaletteName" placeholder="Name">
+									<span class="help-block hidden">Please enter a Palette name</span>
+								</div>
+							</div>
+						</form>
+					</div>
+
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						<button id="addPaletteBtn" type="button" class="btn btn-primary">Add</button>
 					</div>
 				</div>
 			</div>
