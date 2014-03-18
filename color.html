@@ -105,8 +105,6 @@
 			}
 
 			$(document).ready(function () {
-				refreshTooltips();
-
 				if (localStorage.palettes) {
 					importPalettes(loadPalettes());
 					$('#paletteSelect').val(localStorage.currentPalette);
@@ -114,6 +112,8 @@
 					var p = addPalette('Default Palette');
 					localStorage.currentPalette = 'Default Palette';
 				}
+
+				refreshTooltips();
 
 				$('#addBtn').click(function () {
 					var c = getFormVals();
@@ -305,7 +305,7 @@
 								.attr('data-placement', 'top')
 								.attr('title', 'duplicate')
 								.click(function () {
-									createSwatch(getSwatch($(this).parents('.color-section'))).appendTo('#main-stuff');
+									createSwatch(getSwatch($(this).parents('.color-section'))).appendTo($('[data-palette="' + localStorage.currentPalette + '"]'));
 									savePalettes();
 								})
 								.appendTo(ops);
