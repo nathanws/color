@@ -88,6 +88,7 @@
 		<script src="http://cdnjs.cloudflare.com/ajax/libs/less.js/1.6.2/less.min.js"></script>
 
 		<script>
+			var defaultBgColor = '#cecfc7';
 			var swatchHeight = 100;
 			var swatchWidth = 100;
 
@@ -97,6 +98,9 @@
 				};
 
 				var loadPalettes = function () {
+					if (!localStorage.palettes) {
+						localStorage.setItem('palettes', '{}');
+					}
 					return JSON.parse(localStorage.palettes || {});
 				};
 			} else {
@@ -111,6 +115,7 @@
 				} else {
 					var p = addPalette('Default Palette');
 					localStorage.currentPalette = 'Default Palette';
+					savePalettes();
 				}
 
 				refreshTooltips();
@@ -167,6 +172,7 @@
 					}
 
 					importPalettes(JSON.parse($('#swatchTextarea').val()));
+					$('#paletteSelect').val(localStorage.currentPalette);
 
 					$('#exportModal').modal('hide');
 					$('#deleteExistingCB').prop('checked', false)	
@@ -191,11 +197,12 @@
 				});
 
 				$('#inputSwatchHeight').keyup(function (e) {
-					$('.color-section .swatch').css('height', $(this).val());
+					$('[data-palette="' + localStorage.currentPalette + '"]').find('.swatch').css('height', $(this).val());
 				});
 
 				$('#inputSwatchWidth').keyup(function (e) {
-					$('.color-section .swatch').css('width', $(this).val());
+					// $('.color-section .swatch').css('width', $(this).val());
+					$('[data-palette="' + localStorage.currentPalette + '"]').find('.swatch').css('width', $(this).val());
 				});
 
 				$('#paletteSelect').change(function () {
@@ -207,11 +214,19 @@
 					$('#inputSwatchHeight').attr('placeholder', $('.color-section .swatch').height() || swatchHeight);
 					$('#inputSwatchWidth').attr('placeholder', $('.color-section .swatch').width() || swatchWidth);
 				}).on('hide.bs.modal', function (e) {
+					$('[data-palette="' + localStorage.currentPalette + '"]').attr('data-palette-bgcolor', $('#inputBGColor').val());
 					savePalettes();
 				});
 
 				$('#settingsResetBtn').click(function () {
-					localStorage.settings = "{}";
+					var palettes = loadPalettes();
+					var keys = Object.keys(palettes);
+					for (var i = 0; i < keys.length; i++) {
+						var p = palettes[keys[i]];
+						p.settings = {};	
+					}
+
+					localStorage.palettes = JSON.stringify(palettes);
 					location.reload();
 				});
 
@@ -341,9 +356,9 @@
 					var palette = {};
 					palette["name"] = p.attr('data-palette');
 					palette["settings"] = {};
-					palette.settings["backgroundColor"] = p.attr('data-palette-bgcolor');
-					palette.settings["swatchHeight"] = p.find('.swatch').height();
-					palette.settings["swatchWidth"] = p.find('.swatch').width();
+					palette.settings["backgroundColor"] = p.attr('data-palette-bgcolor') || defaultBgColor;
+					palette.settings["swatchHeight"] = p.find('.swatch').height() || swatchHeight;
+					palette.settings["swatchWidth"] = p.find('.swatch').width() || swatchWidth;
 					palette["swatches"] = [];
 
 					$('[data-palette="' + palette.name + '"] .color-section').each(function (index, value) {
@@ -405,6 +420,14 @@
 					if (!currentPalette) {
 						loadPalette($('#main-stuff .palette').first().attr('data-palette'));
 					}
+
+					var c = loadPalettes()[localStorage.currentPalette].settings.backgroundColor || defaultBgColor;
+
+					if (c[0] != '#') {
+						c = '#' + c;
+					}
+
+					$('body').css('background-color', c);
 				}
 			}
 
@@ -420,12 +443,21 @@
 
 			function loadPalette(paletteName) {
 				$('#main-stuff .palette').addClass('hidden');
-				$('[data-palette="' + paletteName + '"]').removeClass('hidden');	
+				var div = $('[data-palette="' + paletteName + '"]');
+				div.removeClass('hidden');	
 
 				localStorage.setItem('currentPalette', paletteName);
 				var palettes = loadPalettes();
 
-				$('body').css('background-color', palettes[paletteName].settings.backgroundColor);
+				var c = palettes[paletteName].settings.backgroundColor || defaultBgColor;
+				if (c[0] != '#') {
+					c = '#' + c;
+				}
+
+				$('body').css('background-color', c);
+
+				div.find('.swatch').css('height', palettes[paletteName].settings.swatchHeight || swatchHeight);	
+				div.find('.swatch').css('width', palettes[paletteName].settings.swatchWidth || swatchWidth);	
 			}
 
 			function refreshTooltips() {
